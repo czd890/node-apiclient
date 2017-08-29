@@ -1,0 +1,22 @@
+{
+    "name": "node-apiclient",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./bin/index.js",
+    "types": "./bin/index.d.ts",
+    "scripts": {
+        "node-install": "npm install",
+        "complie": "tsc -W false",
+        "tsc-test": "tsc --project ./test"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "request": "^2.81.0",
+        "url": "^0.11.0"
+    },
+    "devDependencies": {
+        "@types/node": "^8.0.25",
+        "@types/request": "^2.0.3"
+    }
+}
