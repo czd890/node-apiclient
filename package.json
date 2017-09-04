@@ -1,9 +1,9 @@
 {
     "name": "node-apiclient",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "",
-    "main": "./bin/index.js",
-    "types": "./bin/index.d.ts",
+    "main": "./bin/Index.js",
+    "types": "./bin/Index.d.ts",
     "scripts": {
         "node-install": "npm install",
         "complie": "tsc -W false",
@@ -12,6 +12,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "object-assign-merge": "^1.2.6",
         "request": "^2.81.0",
         "url": "^0.11.0"
     },

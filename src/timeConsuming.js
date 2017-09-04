@@ -1,13 +1,3 @@
-/********************************************************************
- * Copyright (C) 2016 上海洋码头网络技术有限公司. All Rights Reserved.
- *
- * @author tongliang
- * @email tongliang@ymatou.com
- * @date 10/11/2016
- *
- ********************************************************************
- */
-
 'use strict';
 //var request = require('request');
 var url = require('url');
