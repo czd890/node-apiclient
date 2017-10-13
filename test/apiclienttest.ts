@@ -1,6 +1,7 @@
-import { ApiClient } from '../src/ApiClient';
-import * as Bluebird from 'bluebird'
-var client = new ApiClient();
+import apiClient, { UseApiClient } from '../src/Index';
+import * as Bluebird from 'bluebird';
+
+var client = apiClient;
 var baiduReq = client.Get('https://www.baidu.com').then(res => {
     // console.log(res)
     return res;
@@ -18,4 +19,5 @@ Bluebird.props({
     console.log('淘宝返回 返回')
     console.log(data.taobao_res)
 })
+
 

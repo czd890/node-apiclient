@@ -4,9 +4,15 @@ import * as core from "express-serve-static-core";
 import * as url from 'url';
 import * as localStorage from 'continuation-local-storage'
 import { Options } from "./Options";
-
+import * as uuid from 'node-uuid'
 // var tc = require('../lib/timeConsuming');
 
+const TraceId = "X-Request-Id";
+const RequestDepth = "X-Request-Depth";
+const NewDepth = () => { return 10; };
+const NewTraceId = () => { return uuid.v1() };
+const localKey = 'gd-api-client-local-storage';
+const localDepthKey = 'gd-api-client-local-storage-depth'
 
 export class ApiClient {
     private BuildOptions(options?: Options): Options {
@@ -22,8 +28,17 @@ export class ApiClient {
         options.keepAlive = options.keepAlive === false ? false : true;
 
         var namespace = localStorage.getNamespace('gd-api-client-local-storage')
-        if (namespace)
-            options.headers['X-Request-Id'] = namespace.get('X-Request-Id')
+        if (namespace) {
+            options.headers[TraceId] = namespace.get(TraceId)
+            if (!namespace.get(localDepthKey))
+                namespace.set(localDepthKey, NewDepth())
+            else
+                namespace.set(localDepthKey, namespace.get(localDepthKey) + 1);
+            options.headers[RequestDepth] = namespace.get(RequestDepth) + ('' + namespace.get(localDepthKey))
+        } else {
+            options.headers[TraceId] = NewTraceId()
+            options.headers[RequestDepth] = NewDepth()
+        }
 
         return options;
     }
@@ -90,9 +105,10 @@ export class ApiClient {
 }
 
 export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction) {
-    var namespace = localStorage.createNamespace('gd-api-client-local-storage');
+    var namespace = localStorage.createNamespace(localKey);
     namespace.run(() => {
-        namespace.set('X-Request-Id', req.header('X-Request-Id'))
+        namespace.set(TraceId, req.header(TraceId) || NewTraceId())
+        namespace.set(RequestDepth, req.header(RequestDepth) || NewDepth())
         next && next()
     });
 }
