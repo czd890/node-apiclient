@@ -12,7 +12,7 @@ const RequestDepth = "X-Request-Depth";
 const NewDepth = () => { return 10; };
 const NewTraceId = () => { return uuid.v1() };
 const localKey = 'gd-api-client-local-storage';
-const localDepthKey = 'gd-api-client-local-storage-depth'
+const localDepthKey = 'gd-api-client-local-storage-depth';
 
 export class ApiClient {
     private BuildOptions(options?: Options): Options {
@@ -27,16 +27,16 @@ export class ApiClient {
         options.headers = options.headers || {};
         options.keepAlive = options.keepAlive === false ? false : true;
 
-        var namespace = localStorage.getNamespace('gd-api-client-local-storage')
+        let namespace = localStorage.getNamespace('gd-api-client-local-storage');
         if (namespace) {
-            options.headers[TraceId] = namespace.get(TraceId)
+            options.headers[TraceId] = namespace.get(TraceId);
             if (!namespace.get(localDepthKey))
-                namespace.set(localDepthKey, NewDepth())
+                namespace.set(localDepthKey, NewDepth());
             else
                 namespace.set(localDepthKey, namespace.get(localDepthKey) + 1);
             options.headers[RequestDepth] = namespace.get(RequestDepth) + ('' + namespace.get(localDepthKey))
         } else {
-            options.headers[TraceId] = NewTraceId()
+            options.headers[TraceId] = NewTraceId();
             options.headers[RequestDepth] = NewDepth()
         }
 
@@ -44,10 +44,10 @@ export class ApiClient {
     }
     Get<TData>(host: string, path?: string, params?: any, options?: Options): Promise<TData> {
         options = this.BuildOptions(options);
-        options.host = host
-        options.path = path || options.path
-        options.querystring = params
-        options.method = 'get'
+        options.host = host;
+        options.path = path || options.path;
+        options.querystring = params;
+        options.method = 'get';
 
         return this.BasicRequest(options).then(res => {
             return res.body
@@ -55,23 +55,24 @@ export class ApiClient {
     }
     Post<TData>(host: string, path: string, params?: any, options?: Options): Promise<TData> {
         options = this.BuildOptions(options);
-        options.host = host
-        options.path = path
-        options.data = params
-        options.method = 'post'
+        options.host = host;
+        options.path = path;
+        options.data = params;
+        options.method = 'post';
 
         return this.BasicRequest(options).then(res => {
             return res.body
         })
     }
     BasicRequest(options: Options): Promise<RequestResponse> {
-        var opt: CoreOptions & UrlOptions = { url: '' }
-        opt.timeout = options.timeout
-        opt.forever = options.keepAlive
-        opt.url = url.resolve(options.host || '', options.path || '')
+        let opt: CoreOptions & UrlOptions = { url: '' };
+        opt.timeout = options.timeout;
+        opt.method = options.method;
+        opt.forever = options.keepAlive;
+        opt.url = url.resolve(options.host || '', options.path || '');
 
         if (options.querystring) {
-            opt.qs = options.querystring
+            opt.qs = options.querystring;
             if (opt.qs)
                 opt.useQuerystring = true
         }
@@ -93,7 +94,7 @@ export class ApiClient {
 
         opt.headers = options.headers;
         return new Promise((resolve, reject) => {
-            var req = request(opt, (error: any, response: RequestResponse, body: any) => {
+            let req = request(opt, (error: any, response: RequestResponse, body: any) => {
                 if (error) {
                     //TODO add log
                     return reject(error)
@@ -105,10 +106,10 @@ export class ApiClient {
 }
 
 export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction) {
-    var namespace = localStorage.createNamespace(localKey);
+    let namespace = localStorage.createNamespace(localKey);
     namespace.run(() => {
-        namespace.set(TraceId, req.header(TraceId) || NewTraceId())
-        namespace.set(RequestDepth, req.header(RequestDepth) || NewDepth())
+        namespace.set(TraceId, req.header(TraceId) || NewTraceId());
+        namespace.set(RequestDepth, req.header(RequestDepth) || NewDepth());
         next && next()
     });
 }
