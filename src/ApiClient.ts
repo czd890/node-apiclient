@@ -42,6 +42,21 @@ export class ApiClient {
 
         return options;
     }
+    private ConvertBody(res: request.RequestResponse) {
+        const key = 'application/json';
+        var header = res.headers['content-type'];
+        var hasJson = false;
+        if (header) {
+            if (typeof header === 'string') {
+                hasJson = header.indexOf(key) >= 0;
+            }
+        }
+        if (hasJson) {
+            return JSON.parse(res.body);
+        } else
+            return res.body;
+    }
+
     Get<TData>(host: string, path?: string, params?: any, options?: Options): Promise<TData> {
         options = this.BuildOptions(options);
         options.host = host;
@@ -50,7 +65,7 @@ export class ApiClient {
         options.method = 'get';
 
         return this.BasicRequest(options).then(res => {
-            return res.body
+            return this.ConvertBody(res)
         })
     }
     Post<TData>(host: string, path: string, params?: any, options?: Options): Promise<TData> {
@@ -61,7 +76,7 @@ export class ApiClient {
         options.method = 'post';
 
         return this.BasicRequest(options).then(res => {
-            return res.body
+            return this.ConvertBody(res)
         })
     }
     BasicRequest(options: Options): Promise<RequestResponse> {
