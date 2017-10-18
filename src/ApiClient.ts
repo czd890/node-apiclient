@@ -1,20 +1,26 @@
 import * as request from 'request';
-import { CoreOptions, UrlOptions, RequestResponse } from 'request';
+import {CoreOptions, UrlOptions, RequestResponse} from 'request';
 import * as core from "express-serve-static-core";
 import * as url from 'url';
 import * as localStorage from 'continuation-local-storage'
-import { Options } from "./Options";
+import {Options} from "./Options";
 import * as uuid from 'node-uuid'
 // var tc = require('../lib/timeConsuming');
 
 const TraceId = "X-Request-Id";
 const RequestDepth = "X-Request-Depth";
-const NewDepth = () => { return 10; };
-const NewTraceId = () => { return uuid.v1() };
+const NewDepth = () => {
+    return 10;
+};
+const NewTraceId = () => {
+    return uuid.v1()
+};
 const localKey = 'gd-api-client-local-storage';
 const localDepthKey = 'gd-api-client-local-storage-depth';
 
 export class ApiClient {
+    public static UserAgent: string = 'node-apiclient';
+
     private BuildOptions(options?: Options): Options {
         if (!options) options = {};
 
@@ -42,10 +48,11 @@ export class ApiClient {
 
         return options;
     }
+
     private ConvertBody(res: request.RequestResponse) {
         const key = 'application/json';
-        var header = res.headers['content-type'];
-        var hasJson = false;
+        let header = res.headers['content-type'];
+        let hasJson = false;
         if (header) {
             if (typeof header === 'string') {
                 hasJson = header.indexOf(key) >= 0;
@@ -68,6 +75,7 @@ export class ApiClient {
             return this.ConvertBody(res)
         })
     }
+
     Post<TData>(host: string, path: string, params?: any, options?: Options): Promise<TData> {
         options = this.BuildOptions(options);
         options.host = host;
@@ -79,8 +87,9 @@ export class ApiClient {
             return this.ConvertBody(res)
         })
     }
+
     BasicRequest(options: Options): Promise<RequestResponse> {
-        let opt: CoreOptions & UrlOptions = { url: '' };
+        let opt: CoreOptions & UrlOptions = {url: ''};
         opt.timeout = options.timeout;
         opt.method = options.method;
         opt.forever = options.keepAlive;
@@ -107,7 +116,10 @@ export class ApiClient {
             if (options.postTimeout) opt.timeout = options.postTimeout
         }
 
+        if (!options.headers["user-agent"]) options.headers["user-agent"] = ApiClient.UserAgent;
+
         opt.headers = options.headers;
+
         return new Promise((resolve, reject) => {
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
                 if (error) {
@@ -117,6 +129,7 @@ export class ApiClient {
                 if (response.statusCode !== 200) {
                     let err: any = new Error("http error:" + response.statusCode);
                     err.res = response;
+                    err.status=response.statusCode;
                     return reject(err);
                 }
                 resolve(response)
