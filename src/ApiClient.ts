@@ -124,7 +124,7 @@ export class ApiClient {
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
                 if (error) {
                     //TODO add log
-                    return reject()
+                    return reject(error)
                 }
                 if (response.statusCode !== 200) {
                     let err: any = new Error("http error:" + response.statusCode);
