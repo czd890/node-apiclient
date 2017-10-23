@@ -1,9 +1,9 @@
 import * as request from 'request';
-import {CoreOptions, UrlOptions, RequestResponse} from 'request';
+import { CoreOptions, UrlOptions, RequestResponse } from 'request';
 import * as core from "express-serve-static-core";
 import * as url from 'url';
 import * as localStorage from 'continuation-local-storage'
-import {Options} from "./Options";
+import { Options } from "./Options";
 import * as uuid from 'node-uuid'
 // var tc = require('../lib/timeConsuming');
 
@@ -89,7 +89,7 @@ export class ApiClient {
     }
 
     BasicRequest(options: Options): Promise<RequestResponse> {
-        let opt: CoreOptions & UrlOptions = {url: ''};
+        let opt: CoreOptions & UrlOptions = { url: '' };
         opt.timeout = options.timeout;
         opt.method = options.method;
         opt.forever = options.keepAlive;
@@ -129,7 +129,7 @@ export class ApiClient {
                 if (response.statusCode !== 200) {
                     let err: any = new Error("http error:" + response.statusCode);
                     err.res = response;
-                    err.status=response.statusCode;
+                    err.status = response.statusCode;
                     return reject(err);
                 }
                 resolve(response)
@@ -141,8 +141,14 @@ export class ApiClient {
 export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction) {
     let namespace = localStorage.createNamespace(localKey);
     namespace.run(() => {
-        namespace.set(TraceId, req.header(TraceId) || NewTraceId());
-        namespace.set(RequestDepth, req.header(RequestDepth) || NewDepth());
+        var tid = req.header(TraceId) || NewTraceId();
+        var depth: any = req.header(RequestDepth) || NewDepth()
+        namespace.set(TraceId, tid);
+        namespace.set(RequestDepth, depth);
+
+        res.header(TraceId, tid);
+        res.header(RequestDepth, depth);
+
         next && next()
     });
 }
