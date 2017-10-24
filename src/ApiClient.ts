@@ -36,14 +36,18 @@ export class ApiClient {
         let namespace = localStorage.getNamespace('gd-api-client-local-storage');
         if (namespace) {
             options.headers[TraceId] = namespace.get(TraceId);
-            if (!namespace.get(localDepthKey))
+            if (!namespace.get(localDepthKey)){
                 namespace.set(localDepthKey, NewDepth());
-            else
+            }else{
                 namespace.set(localDepthKey, namespace.get(localDepthKey) + 1);
+            }
+            if(namespace.get('token')){
+                options.headers['token']=namespace.get('token');
+            } 
             options.headers[RequestDepth] = namespace.get(RequestDepth) + ('' + namespace.get(localDepthKey))
         } else {
             options.headers[TraceId] = NewTraceId();
-            options.headers[RequestDepth] = NewDepth()
+            options.headers[RequestDepth] = NewDepth();
         }
 
         return options;
@@ -142,9 +146,14 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
     let namespace = localStorage.createNamespace(localKey);
     namespace.run(() => {
         var tid = req.header(TraceId) || NewTraceId();
-        var depth: any = req.header(RequestDepth) || NewDepth()
+        var depth: any = req.header(RequestDepth) || NewDepth();
+        let _req:any=req;
+        _req.UserInfo = _req.UserInfo || {};
         namespace.set(TraceId, tid);
         namespace.set(RequestDepth, depth);
+        if(_req.UserInfo.AccessToken){
+            namespace.set('token', _req.UserInfo.AccessToken);
+        }
 
         res.header(TraceId, tid);
         res.header(RequestDepth, depth);
