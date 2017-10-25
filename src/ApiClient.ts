@@ -174,7 +174,7 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
         namespace.set(RequestDepth, depth);
         namespace.set(UserId, req.cookies['uid']);
         namespace.set(UserTraceId, req.cookies['utid']);
-        namespace.set(UserTraceId, req.header(RealIp));
+        namespace.set(RealIp, req.header(RealIp));
 
         if (_req.UserInfo.AccessToken) {
             namespace.set(AccessToken, _req.UserInfo.AccessToken);
