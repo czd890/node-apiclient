@@ -12,6 +12,7 @@ const RequestDepth = "X-Request-Depth";
 const AccessToken = 'X-Request-token';
 const UserId='X-Request-uid';
 const UserTraceId='X-Request-utid';
+const RealIp='X-Real-IP'
 const NewDepth = () => {
     return 10;
 };
@@ -50,6 +51,7 @@ export class ApiClient {
             options.headers[UserId] = namespace.get(UserId);
             options.headers[UserTraceId] = namespace.get(UserTraceId);
             options.headers[AccessToken] = namespace.get(AccessToken);
+            options.headers[RealIp] = namespace.get(RealIp);
         } else {
             options.headers[TraceId] = NewTraceId();
             options.headers[RequestDepth] = NewDepth();
@@ -172,6 +174,7 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
         namespace.set(RequestDepth, depth);
         namespace.set(UserId, req.cookies['uid']);
         namespace.set(UserTraceId, req.cookies['utid']);
+        namespace.set(UserTraceId, req.header(RealIp));
 
         if (_req.UserInfo.AccessToken) {
             namespace.set(AccessToken, _req.UserInfo.AccessToken);
