@@ -9,6 +9,9 @@ import * as uuid from 'node-uuid'
 
 const TraceId = "X-Request-Id";
 const RequestDepth = "X-Request-Depth";
+const AccessToken = 'X-Request-token';
+const UserId='X-Request-uid';
+const UserTraceId='X-Request-utid';
 const NewDepth = () => {
     return 10;
 };
@@ -17,6 +20,7 @@ const NewTraceId = () => {
 };
 const localKey = 'gd-api-client-local-storage';
 const localDepthKey = 'gd-api-client-local-storage-depth';
+
 
 export class ApiClient {
     public static UserAgent: string = 'node-apiclient';
@@ -35,16 +39,17 @@ export class ApiClient {
 
         let namespace = localStorage.getNamespace('gd-api-client-local-storage');
         if (namespace) {
-            options.headers[TraceId] = namespace.get(TraceId);
             if (!namespace.get(localDepthKey)) {
                 namespace.set(localDepthKey, NewDepth());
             } else {
                 namespace.set(localDepthKey, namespace.get(localDepthKey) + 1);
             }
-            if (namespace.get('token')) {
-                options.headers['token'] = namespace.get('token');
-            }
+            
+            options.headers[TraceId] = namespace.get(TraceId);
             options.headers[RequestDepth] = namespace.get(RequestDepth) + ('' + namespace.get(localDepthKey))
+            options.headers[UserId] = namespace.get(UserId);
+            options.headers[UserTraceId] = namespace.get(UserTraceId);
+            options.headers[AccessToken] = namespace.get(AccessToken);
         } else {
             options.headers[TraceId] = NewTraceId();
             options.headers[RequestDepth] = NewDepth();
@@ -165,13 +170,15 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
         _req.UserInfo = _req.UserInfo || {};
         namespace.set(TraceId, tid);
         namespace.set(RequestDepth, depth);
+        namespace.set(UserId, req.cookies['uid']);
+        namespace.set(UserTraceId, req.cookies['utid']);
+
         if (_req.UserInfo.AccessToken) {
-            namespace.set('token', _req.UserInfo.AccessToken);
+            namespace.set(AccessToken, _req.UserInfo.AccessToken);
         }
 
-        res.header(TraceId, tid);
-        res.header(RequestDepth, depth);
-
+        //res.header(TraceId, tid);
+        //res.header(RequestDepth, depth);
         next && next()
     });
 }
