@@ -36,14 +36,14 @@ export class ApiClient {
         let namespace = localStorage.getNamespace('gd-api-client-local-storage');
         if (namespace) {
             options.headers[TraceId] = namespace.get(TraceId);
-            if (!namespace.get(localDepthKey)){
+            if (!namespace.get(localDepthKey)) {
                 namespace.set(localDepthKey, NewDepth());
-            }else{
+            } else {
                 namespace.set(localDepthKey, namespace.get(localDepthKey) + 1);
             }
-            if(namespace.get('token')){
-                options.headers['token']=namespace.get('token');
-            } 
+            if (namespace.get('token')) {
+                options.headers['token'] = namespace.get('token');
+            }
             options.headers[RequestDepth] = namespace.get(RequestDepth) + ('' + namespace.get(localDepthKey))
         } else {
             options.headers[TraceId] = NewTraceId();
@@ -91,8 +91,16 @@ export class ApiClient {
             return this.ConvertBody(res)
         })
     }
+    Request(host: string, path: string, params?: any, options?: Options): request.Request {
+        options = this.BuildOptions(options);
+        options.host = host;
+        options.path = path;
+        options.data = params;
+        var opt = this.ConvertOptions(options);
 
-    BasicRequest(options: Options): Promise<RequestResponse> {
+        return request(opt);
+    }
+    private ConvertOptions(options: Options): CoreOptions & UrlOptions {
         let opt: CoreOptions & UrlOptions = { url: '' };
         opt.timeout = options.timeout;
         opt.method = options.method;
@@ -124,6 +132,12 @@ export class ApiClient {
 
         opt.headers = options.headers;
 
+        return opt
+    }
+    private BasicRequest(options: Options): Promise<RequestResponse> {
+
+        var opt = this.ConvertOptions(options);
+
         return new Promise((resolve, reject) => {
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
                 if (error) {
@@ -147,11 +161,11 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
     namespace.run(() => {
         var tid = req.header(TraceId) || NewTraceId();
         var depth: any = req.header(RequestDepth) || NewDepth();
-        let _req:any=req;
+        let _req: any = req;
         _req.UserInfo = _req.UserInfo || {};
         namespace.set(TraceId, tid);
         namespace.set(RequestDepth, depth);
-        if(_req.UserInfo.AccessToken){
+        if (_req.UserInfo.AccessToken) {
             namespace.set('token', _req.UserInfo.AccessToken);
         }
 
