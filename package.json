@@ -1,6 +1,6 @@
 {
     "name": "node-apiclient",
-    "version": "1.2.16",
+    "version": "1.2.17",
     "description": "",
     "main": "./bin/Index.js",
     "types": "./bin/Index.d.ts",
