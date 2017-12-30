@@ -10,9 +10,9 @@ import * as uuid from 'node-uuid'
 const TraceId = "X-Request-Id";
 const RequestDepth = "X-Request-Depth";
 const AccessToken = 'X-Request-token';
-const UserId='X-Request-uid';
-const UserTraceId='X-Request-utid';
-const RealIp='X-Real-IP'
+const UserId = 'X-Request-uid';
+const UserTraceId = 'X-Request-utid';
+const RealIp = 'X-Real-IP'
 const NewDepth = () => {
     return 10;
 };
@@ -45,7 +45,7 @@ export class ApiClient {
             } else {
                 namespace.set(localDepthKey, namespace.get(localDepthKey) + 1);
             }
-            
+
             options.headers[TraceId] = namespace.get(TraceId);
             options.headers[RequestDepth] = namespace.get(RequestDepth) + ('' + namespace.get(localDepthKey))
             options.headers[UserId] = namespace.get(UserId);
@@ -163,7 +163,7 @@ export class ApiClient {
     }
 }
 
-export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction) {
+export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction | undefined) {
     let namespace = localStorage.createNamespace(localKey);
     namespace.run(() => {
         var tid = req.header(TraceId) || NewTraceId();
