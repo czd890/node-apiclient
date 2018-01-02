@@ -120,18 +120,21 @@ export class ApiClient {
                 opt.useQuerystring = true
         }
 
-        if (options.method === 'post') {
-            if (options.headers && (options.headers['Content-Type'] == 'application/x-www-form-urlencoded' || options.headers['content-type'] == 'application/x-www-form-urlencoded')) {
+        if (options.method && options.method.toLowerCase() === 'post') {
+            var opContentType = (options.headers && (options.headers['Content-Type'] || options.headers['content-type'])) as string;
+
+            if (opContentType && opContentType.toLowerCase() === 'application/x-www-form-urlencoded') {
                 opt.form = options.data;
-            }
-            else if (options.headers && (options.headers['Content-Type'] == 'multipart/form-data' || options.headers['content-type'] == 'multipart/form-data')) {
+            } else if (opContentType && opContentType.toLowerCase() === 'multipart/form-data') {
                 opt.formData = options.data;
             }
-            else {
-                if (!options.headers["Content-Type"] && !options.headers["content-type"])
-                    options.headers["content-type"] = "application/json";
+            if (!opContentType) {
+                options.headers["content-type"] = "application/json";
+            }
+            if (options.data && (opContentType || options.headers["content-type"]).toLowerCase() == "application/json") {
                 opt.body = JSON.stringify(options.data);
             }
+
             if (options.postTimeout) opt.timeout = options.postTimeout
         }
 
