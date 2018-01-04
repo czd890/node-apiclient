@@ -2,9 +2,10 @@ import * as request from 'request';
 import { CoreOptions, UrlOptions, RequestResponse } from 'request';
 import * as core from "express-serve-static-core";
 import * as url from 'url';
-import * as localStorage from 'continuation-local-storage'
 import { Options } from "./Options";
 import * as uuid from 'node-uuid'
+
+var localStorage = require('./context')
 // var tc = require('../lib/timeConsuming');
 
 const TraceId = "X-Request-Id";
@@ -168,7 +169,7 @@ export class ApiClient {
 
 export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction | undefined) {
     let namespace = localStorage.createNamespace(localKey);
-    namespace.run(() => {
+    namespace.run((context: any) => {
         var tid = req.header(TraceId) || NewTraceId();
         var depth: any = req.header(RequestDepth) || NewDepth();
         let _req: any = req;
@@ -182,7 +183,9 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
         if (_req.UserInfo.AccessToken) {
             namespace.set(AccessToken, _req.UserInfo.AccessToken);
         }
-
+        res.on('end', () => {
+            namespace.exit(context);
+        })
         //res.header(TraceId, tid);
         //res.header(RequestDepth, depth);
         next && next()
