@@ -124,15 +124,15 @@ export class ApiClient {
         if (options.method && options.method.toLowerCase() === 'post') {
             var opContentType = (options.headers && (options.headers['Content-Type'] || options.headers['content-type'])) as string;
 
-            if (opContentType && opContentType.toLowerCase() === 'application/x-www-form-urlencoded') {
+            if (opContentType && opContentType.toLowerCase().indexOf('application/x-www-form-urlencoded') === 0) {
                 opt.form = options.data;
-            } else if (opContentType && opContentType.toLowerCase() === 'multipart/form-data') {
+            } else if (opContentType && opContentType.toLowerCase().indexOf('multipart/form-data') === 0) {
                 opt.formData = options.data;
             }
             if (!opContentType) {
                 options.headers["content-type"] = "application/json";
             }
-            if (options.data && (opContentType || options.headers["content-type"]).toLowerCase() == "application/json") {
+            if (options.data && (opContentType || options.headers["content-type"]).toLowerCase().indexOf('application/json') === 0) {
                 opt.body = JSON.stringify(options.data);
             }
 
