@@ -152,13 +152,18 @@ export class ApiClient {
         return new Promise((resolve, reject) => {
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
                 if (error) {
-                    //TODO add log
+                    error.apiurl = opt.url;
+                    error.apimethod = opt.method;
+                    error.apidata = opt.body || opt.formData;
                     return reject(error)
                 }
                 if (response.statusCode !== 200) {
                     let err: any = new Error("http error:" + response.statusCode);
                     err.res = response;
                     err.status = response.statusCode;
+                    err.apiurl = opt.url;
+                    err.apimethod = opt.method;
+                    err.apidata = opt.body || opt.formData;
                     return reject(err);
                 }
                 resolve(response)
