@@ -157,7 +157,7 @@ export class ApiClient {
                     error.apidata = opt.body || opt.formData;
                     return reject(error)
                 }
-                if (response.statusCode !== 200) {
+                if (!response.statusCode || response.statusCode < 200 || response.statusCode > 206) {
                     let err: any = new Error("http error:" + response.statusCode);
                     err.res = response;
                     err.status = response.statusCode;
