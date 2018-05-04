@@ -4,8 +4,10 @@ import * as core from "express-serve-static-core";
 import * as url from 'url';
 import { Options } from "./Options";
 import * as uuid from 'node-uuid'
+import { EventEmitter } from 'events';
 
 var localStorage = require('./context')
+
 // var tc = require('../lib/timeConsuming');
 
 const TraceId = "X-Request-Id";
@@ -23,8 +25,27 @@ const NewTraceId = () => {
 const localKey = 'gd-api-client-local-storage';
 const localDepthKey = 'gd-api-client-local-storage-depth';
 
+export interface ApiClientError extends Error {
+    res?: RequestResponse;
+    status?: number;
+    apiurl?: string | url.Url;
+    apimethod?: string;
+    apidata?: any;
+    options?: CoreOptions & UrlOptions
+}
+export interface IApiClient extends ApiClient {
+    emit(event: "error", error: ApiClientError): boolean;
+    emit(event: "httperror", error: ApiClientError): boolean;
+    emit(event: "response", options: CoreOptions & UrlOptions, response: RequestResponse, body: any): boolean;
+    emit(event: "data", body: any): boolean;
 
-export class ApiClient {
+    on(event: 'error', listener: (error: ApiClientError) => void): this;
+    on(event: 'httperror', listener: (error: ApiClientError) => void): this;
+    on(event: 'response', listener: (options: CoreOptions & UrlOptions, response: RequestResponse, body: any) => void): this;
+    on(event: 'data', listener: (body: any) => void): this;
+}
+
+export class ApiClient extends EventEmitter {
     public static UserAgent: string = 'node-apiclient';
 
     private BuildOptions(options?: Options): Options {
@@ -62,6 +83,7 @@ export class ApiClient {
     }
 
     private ConvertBody(res: request.RequestResponse) {
+        res.emit
         const key = 'application/json';
         let header = res.headers['content-type'];
         let hasJson = false;
@@ -108,6 +130,7 @@ export class ApiClient {
 
         return request(opt);
     }
+
     private ConvertOptions(options: Options): CoreOptions & UrlOptions {
         let opt: CoreOptions & UrlOptions = { url: '' };
         opt.timeout = options.timeout;
@@ -152,20 +175,29 @@ export class ApiClient {
         return new Promise((resolve, reject) => {
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
                 if (error) {
-                    error.apiurl = opt.url;
-                    error.apimethod = opt.method;
-                    error.apidata = opt.body || opt.formData;
-                    return reject(error)
+                    var err: ApiClientError = error;
+                    err.apiurl = opt.url;
+                    err.apimethod = opt.method;
+                    err.apidata = opt.body || opt.formData;
+                    err.options = opt;
+                    err.res = response;
+                    this.emit('error', error);
+
+                    return reject(error);
                 }
+
+                this.emit('response', opt, response, body);
                 if (!response.statusCode || response.statusCode < 200 || response.statusCode > 206) {
-                    let err: any = new Error("http error:" + response.statusCode);
+                    let err: ApiClientError = new Error("http error:" + response.statusCode);
                     err.res = response;
                     err.status = response.statusCode;
                     err.apiurl = opt.url;
                     err.apimethod = opt.method;
-                    err.apidata = opt.body || opt.formData;
+                    err.apidata = body
+                    this.emit('httperror', err);
                     return reject(err);
                 }
+                this.emit('data', body)
                 resolve(response)
             });
         });

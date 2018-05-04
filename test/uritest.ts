@@ -11,3 +11,7 @@ import * as url from "url";
 var t="application/json:charset=utf-8";
 var i=t.indexOf('application/json t')
 console.log(i)
+
+
+var tt=JSON.stringify(t)
+console.log(tt)

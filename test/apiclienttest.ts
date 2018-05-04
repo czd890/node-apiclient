@@ -2,6 +2,14 @@ import apiClient, { UseApiClient } from '../src/Index';
 import * as Bluebird from 'bluebird';
 
 var client = apiClient;
+
+
+client.on('response', (options, res, body) => {
+    console.log(options, res.headers);
+});
+
+
+
 var baiduReq = client.Get('https://www.baidu.com').then(res => {
     // console.log(res)
     return res;
@@ -17,11 +25,11 @@ Bluebird.props({
     bp_res: bp
 }).then(data => {
     console.log('baidu 返回')
-    console.log(data.baidu_res)
+    // console.log(data.baidu_res)
     console.log('淘宝返回 返回')
-    console.log(data.taobao_res)
+    // console.log(data.taobao_res)
     console.log('淘宝返回 返回')
-    console.log(data.bp_res)
+    // console.log(data.bp_res)
 })
 
 

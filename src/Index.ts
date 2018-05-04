@@ -1,7 +1,7 @@
-import { ApiClient } from './ApiClient'
+import { ApiClient, IApiClient } from './ApiClient'
 
 export * from './ApiClient'
 
 
-const instance: ApiClient = new ApiClient();
+const instance: IApiClient = new ApiClient();
 export default instance;
