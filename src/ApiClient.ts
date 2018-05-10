@@ -144,7 +144,7 @@ export class ApiClient extends EventEmitter {
                 opt.useQuerystring = true
         }
 
-        if (options.method && options.method.toLowerCase() === 'post') {
+        if (options.method && (options.method.toLowerCase() === 'post' || options.method.toLowerCase() === 'put')) {
             var opContentType = (options.headers && (options.headers['Content-Type'] || options.headers['content-type'])) as string;
 
             if (opContentType && opContentType.toLowerCase().indexOf('application/x-www-form-urlencoded') === 0) {
@@ -156,10 +156,14 @@ export class ApiClient extends EventEmitter {
                 options.headers["content-type"] = "application/json";
             }
             if (options.data && (opContentType || options.headers["content-type"]).toLowerCase().indexOf('application/json') === 0) {
-                opt.body = JSON.stringify(options.data);
+                opt.body = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
+            } else {
+                opt.body = options.data
             }
 
-            if (options.postTimeout) opt.timeout = options.postTimeout
+            if (options.postTimeout) {
+                opt.timeout = options.postTimeout
+            }
         }
 
         if (!options.headers["user-agent"]) options.headers["user-agent"] = ApiClient.UserAgent;
