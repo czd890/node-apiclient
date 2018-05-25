@@ -4,8 +4,8 @@ import * as Bluebird from 'bluebird';
 var client = apiClient;
 
 
-client.on('response', (options, res, body) => {
-    console.log(options, res.headers);
+client.on('response', (options, res, body, meta) => {
+    console.log(options, res.headers, meta);
 });
 
 

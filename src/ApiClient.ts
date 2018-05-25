@@ -1,5 +1,5 @@
 import * as request from 'request';
-import { CoreOptions, UrlOptions, RequestResponse } from 'request';
+import { CoreOptions, UrlOptions, RequestResponse, Request } from 'request';
 import * as core from "express-serve-static-core";
 import * as url from 'url';
 import { Options } from "./Options";
@@ -26,6 +26,7 @@ const localKey = 'gd-api-client-local-storage';
 const localDepthKey = 'gd-api-client-local-storage-depth';
 
 export interface ApiClientError extends Error {
+    duration?: number;
     res?: RequestResponse;
     status?: number;
     apiurl?: string | url.Url;
@@ -33,16 +34,58 @@ export interface ApiClientError extends Error {
     apidata?: any;
     options?: CoreOptions & UrlOptions
 }
+
+export interface RequestMetadata {
+    duration?: number,
+    apiurl?: string | url.Url,
+    apimethod?: string,
+    req_opt?: CoreOptions & UrlOptions,
+    req?: Request,
+    res?: RequestResponse,
+    res_body?: any
+}
+
 export interface IApiClient extends ApiClient {
     emit(event: "error", error: ApiClientError): boolean;
     emit(event: "httperror", error: ApiClientError): boolean;
-    emit(event: "response", options: CoreOptions & UrlOptions, response: RequestResponse, body: any): boolean;
-    emit(event: "data", body: any): boolean;
-
+    emit(event: "response", options: CoreOptions & UrlOptions, response: RequestResponse, body: any, metadata: any): boolean;
+    emit(event: "data", body: any, metadata: any): boolean;
+    /**
+     * requst组件请求发送错误时通知
+     * 
+     * @param {'error'} event 
+     * @param {(error: ApiClientError) => void} listener 
+     * @returns {this} 
+     * @memberof IApiClient
+     */
     on(event: 'error', listener: (error: ApiClientError) => void): this;
+    /**
+     * 请求httpcode不为正确响应时通知，<200 || >206
+     * 
+     * @param {'httperror'} event 
+     * @param {(error: ApiClientError) => void} listener 
+     * @returns {this} 
+     * @memberof IApiClient
+     */
     on(event: 'httperror', listener: (error: ApiClientError) => void): this;
-    on(event: 'response', listener: (options: CoreOptions & UrlOptions, response: RequestResponse, body: any) => void): this;
-    on(event: 'data', listener: (body: any) => void): this;
+    /**
+     * request请求成功返回时通知
+     * 
+     * @param {'response'} event 
+     * @param {((options: CoreOptions & UrlOptions, response: RequestResponse, body: any, metadata: RequestMetadata) => void)} listener 
+     * @returns {this} 
+     * @memberof IApiClient
+     */
+    on(event: 'response', listener: (options: CoreOptions & UrlOptions, response: RequestResponse, body: any, metadata: RequestMetadata) => void): this;
+    /**
+     * 请求正常返回且httpcode为正确时通知
+     * 
+     * @param {'data'} event 
+     * @param {(body: any, metadata: RequestMetadata) => void} listener 
+     * @returns {this} 
+     * @memberof IApiClient
+     */
+    on(event: 'data', listener: (body: any, metadata: RequestMetadata) => void): this;
 }
 
 export class ApiClient extends EventEmitter {
@@ -177,7 +220,10 @@ export class ApiClient extends EventEmitter {
         var opt = this.ConvertOptions(options);
 
         return new Promise((resolve, reject) => {
+            let now = Date.now();
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
+                req.getAgent
+                var reqTime = Date.now() - now;
                 if (error) {
                     var err: ApiClientError = error;
                     err.apiurl = opt.url;
@@ -185,23 +231,33 @@ export class ApiClient extends EventEmitter {
                     err.apidata = opt.body || opt.formData;
                     err.options = opt;
                     err.res = response;
+                    err.duration = reqTime;
                     this.emit('error', error);
 
                     return reject(error);
                 }
-
-                this.emit('response', opt, response, body);
+                var metadata: RequestMetadata = {
+                    duration: reqTime,
+                    apiurl: opt.url,
+                    apimethod: opt.method,
+                    req_opt: opt,
+                    req: req,
+                    res: response,
+                    res_body: body
+                };
+                this.emit('response', opt, response, body, metadata);
                 if (!response.statusCode || response.statusCode < 200 || response.statusCode > 206) {
                     let err: ApiClientError = new Error("http error:" + response.statusCode);
                     err.res = response;
                     err.status = response.statusCode;
                     err.apiurl = opt.url;
                     err.apimethod = opt.method;
-                    err.apidata = body
+                    err.apidata = body;
+                    err.duration = reqTime;
                     this.emit('httperror', err);
                     return reject(err);
                 }
-                this.emit('data', body)
+                this.emit('data', body, metadata);
                 resolve(response)
             });
         });
