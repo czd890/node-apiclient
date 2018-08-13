@@ -182,7 +182,7 @@ export class ApiClient extends EventEmitter {
         opt.url = url.resolve(options.host || '', options.path || '');
 
         if (options.querystring) {
-            opt.qs = options.querystring;
+            opt.qs = options.querystring || options.data;
             if (opt.qs)
                 opt.useQuerystring = true
         }
@@ -221,8 +221,9 @@ export class ApiClient extends EventEmitter {
 
         return new Promise((resolve, reject) => {
             let now = Date.now();
+
             let req = request(opt, (error: any, response: RequestResponse, body: any) => {
-                req.getAgent
+
                 var reqTime = Date.now() - now;
                 if (error) {
                     var err: ApiClientError = error;
