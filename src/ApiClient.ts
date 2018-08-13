@@ -182,9 +182,13 @@ export class ApiClient extends EventEmitter {
         opt.url = url.resolve(options.host || '', options.path || '');
 
         if (options.querystring) {
-            opt.qs = options.querystring || options.data;
-            if (opt.qs)
-                opt.useQuerystring = true
+            opt.qs = options.querystring;
+            opt.qs && (opt.useQuerystring = true);
+
+        }
+        if (options.method === 'get' && options.data) {
+            opt.qs = options.data;
+            opt.qs && (opt.useQuerystring = true);
         }
 
         if (options.method && (options.method.toLowerCase() === 'post' || options.method.toLowerCase() === 'put')) {
