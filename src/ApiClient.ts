@@ -5,6 +5,7 @@ import * as url from 'url';
 import { Options } from "./Options";
 import * as uuid from 'node-uuid'
 import { EventEmitter } from 'events';
+import * as os from 'os'
 
 var localStorage = require('./context')
 
@@ -16,6 +17,10 @@ const AccessToken = 'X-Request-token';
 const UserId = 'X-Request-uid';
 const UserTraceId = 'X-Request-utid';
 const RealIp = 'X-Real-IP'
+const ReqId = "current-request-id";
+const LocalIp = "local-ip";
+const ClientIp = "client-ip";
+const RequestPath = "request-url";
 const NewDepth = () => {
     return 10;
 };
@@ -103,7 +108,7 @@ export class ApiClient extends EventEmitter {
         options.headers = options.headers || {};
         options.keepAlive = options.keepAlive === false ? false : true;
 
-        let namespace = localStorage.getNamespace('gd-api-client-local-storage');
+        let namespace = localStorage.getNamespace(localKey);
         if (namespace) {
             if (!namespace.get(localDepthKey)) {
                 namespace.set(localDepthKey, NewDepth());
@@ -268,7 +273,22 @@ export class ApiClient extends EventEmitter {
         });
     }
 }
+function getLocalIp() {
+    var nif = os.networkInterfaces();
+    for (const key in nif) {
+        if (nif.hasOwnProperty(key)) {
+            const element = nif[key];
+            for (let index = 0; index < element.length; index++) {
+                const item = element[index];
+                if (item.family === 'IPv4' && item.address !== '127.0.0.1') {
+                    return item.address;
+                }
 
+            }
+        }
+    }
+    return "";
+}
 export function UseApiClient(req: core.Request, res: core.Response, next: core.NextFunction | undefined) {
     let namespace = localStorage.createNamespace(localKey);
     namespace.run((context: any) => {
@@ -281,6 +301,12 @@ export function UseApiClient(req: core.Request, res: core.Response, next: core.N
         namespace.set(UserId, req.cookies['uid']);
         namespace.set(UserTraceId, req.cookies['utid']);
         namespace.set(RealIp, req.header(RealIp));
+
+        namespace.set(ReqId, NewTraceId());
+        namespace.set(LocalIp, getLocalIp());
+        namespace.set(ClientIp, req.header('x-forwarded-for') || req.connection.remoteAddress);
+        namespace.set(RequestPath, req.originalUrl);
+
 
         if (_req.UserInfo.AccessToken) {
             namespace.set(AccessToken, _req.UserInfo.AccessToken);
