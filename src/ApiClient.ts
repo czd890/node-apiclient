@@ -3,7 +3,7 @@ import { CoreOptions, UrlOptions, RequestResponse, Request } from 'request';
 import * as core from "express-serve-static-core";
 import * as url from 'url';
 import { Options } from "./Options";
-import * as uuid from 'node-uuid'
+import * as uuid from 'uuid'
 import { EventEmitter } from 'events';
 import * as os from 'os'
 
@@ -25,7 +25,7 @@ const NewDepth = () => {
     return 10;
 };
 const NewTraceId = () => {
-    return uuid.v1()
+    return uuid.v4()
 };
 const localKey = 'gd-api-client-local-storage';
 const localDepthKey = 'gd-api-client-local-storage-depth';

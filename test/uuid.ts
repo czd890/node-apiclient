@@ -1,3 +1,4 @@
-import * as uuid from 'node-uuid'
+import * as uuid from 'uuid'
 
-console.log(uuid.v1())
+console.log(uuid.v4())
+console.log(uuid.v4().replace(/-/g,''))
