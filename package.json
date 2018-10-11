@@ -1,15 +1,20 @@
 {
     "name": "node-apiclient",
-    "version": "2.1.4",
+    "version": "2.1.6",
     "description": "",
     "main": "./bin/Index.js",
     "types": "./bin/Index.d.ts",
     "scripts": {
         "node-install": "npm install",
         "complie": "tsc -W false",
-        "tsc-test": "tsc --project ./test"
+        "tsc-test": "tsc --project ./test",
+        "dev-publish": "npm publish --registry=https://registry.npmjs.org"
     },
-    "author": "",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/czd890/node-apiclient"
+    },
+    "author": "czd890",
     "license": "ISC",
     "dependencies": {
         "async-listener": "^0.6.9",
