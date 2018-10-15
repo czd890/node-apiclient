@@ -18,20 +18,20 @@
     "license": "ISC",
     "dependencies": {
         "async-listener": "^0.6.9",
-        "emitter-listener": "^1.1.1",
+        "emitter-listener": "^1.1.2",
         "express-serve-static-core": "^0.1.1",
         "object-assign-merge": "^1.2.6",
-        "request": "^2.83.0",
+        "request": "^2.88.0",
         "url": "^0.11.0",
         "uuid": "^3.3.2"
     },
     "devDependencies": {
-        "@types/bluebird": "^3.5.19",
-        "@types/express-serve-static-core": "^4.11.0",
-        "@types/node": "^8.5.5",
-        "@types/request": "^2.0.9",
+        "@types/bluebird": "^3.5.24",
+        "@types/express-serve-static-core": "^4.16.0",
+        "@types/node": "^8.10.36",
+        "@types/request": "^2.47.1",
         "@types/uuid": "^3.4.4",
-        "bluebird": "^3.5.1"
+        "bluebird": "^3.5.2"
     },
     "files": [
         "bin",
